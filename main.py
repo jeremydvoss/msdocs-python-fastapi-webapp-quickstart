@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 import logging
+from os import getenv
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -38,7 +39,12 @@ async def hello(request: Request, name: str = Form(...)):
     logger.info("hello")
     if name:
         print('Request for hello page received with name=%s' % name)
-        return templates.TemplateResponse('hello.html', {"request": request, 'name':name})
+        return templates.TemplateResponse('hello.html', {
+            "request": request,
+            'name':name,
+            'pythonpath': getenv("PYTHONPATH"),
+            'app_path': getenv("APP_PATH")
+        })
     else:
         print('Request for hello page received with no name or blank name -- redirecting')
         return RedirectResponse(request.url_for("index"), status_code=status.HTTP_302_FOUND)
