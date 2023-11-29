@@ -3,5 +3,6 @@ uvicorn
 gunicorn
 jinja2
 python-multipart
-azure-monitor-opentelemetry==1.1.0
 typing-extensions~=4.8.0
+azure-monitor-opentelemetry==1.0.0b16
+# azure-monitor-opentelemetry==1.1.0

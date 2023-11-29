@@ -1,5 +1,5 @@
-# from azure.monitor.opentelemetry import configure_azure_monitor
-# configure_azure_monitor()
+from azure.monitor.opentelemetry import configure_azure_monitor
+configure_azure_monitor()
 
 from fastapi import FastAPI, Form, Request, status
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
@@ -17,6 +17,7 @@ logger.setLevel(logging.INFO)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount('/static', StaticFiles(directory=os.path.join(current_dir, 'static')), name='static')
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
