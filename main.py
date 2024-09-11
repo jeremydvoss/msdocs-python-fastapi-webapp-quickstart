@@ -1,5 +1,5 @@
-from azure.monitor.opentelemetry import configure_azure_monitor
-configure_azure_monitor()
+# from azure.monitor.opentelemetry import configure_azure_monitor
+# configure_azure_monitor()
 
 from fastapi import FastAPI, Form, Request, status
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
@@ -12,9 +12,6 @@ from os import getenv
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-# FastAPIInstrumentor().instrument()
-
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 # app.mount('/static', StaticFiles(directory=os.path.join(current_dir, 'static')), name='static')
@@ -26,7 +23,7 @@ async def index(request: Request):
     logger.info("JEREVOSS: app.middleware: %s" % app.middleware)
     logger.info("JEREVOSS: app.middleware(opentelemetry): %s" % app.middleware("opentelemetry"))
     print('Request for index page received')
-    return templates.TemplateResponse('index.html', {"request": request})
+    return "fastapi test app"
 
 @app.get('/favicon.ico')
 async def favicon():
@@ -52,5 +49,7 @@ async def hello(request: Request, name: str = Form(...)):
 
 if __name__ == '__main__':
     logger.info("__main__")
-    uvicorn.run('main:app', host='0.0.0.0', port=8000)
-
+    logger.warning("__main__")
+    logger.error("__main__")
+    print("__main__")
+    uvicorn.run('main:app', host='0.0.0.0', port=3100)
