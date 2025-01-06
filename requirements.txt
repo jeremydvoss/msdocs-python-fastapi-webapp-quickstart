@@ -4,4 +4,4 @@ gunicorn
 jinja2
 python-multipart
 typing-extensions~=4.8.0
-azure-monitor-opentelemetry~=1.6.2
+# azure-monitor-opentelemetry~=1.6.2
