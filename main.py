@@ -23,6 +23,7 @@ async def index(request: Request):
     logger.info("JEREVOSS: app.middleware: %s" % app.middleware)
     logger.info("JEREVOSS: app.middleware(opentelemetry): %s" % app.middleware("opentelemetry"))
     print('Request for index page received')
+    test_import_attach_dependencies()
     return "fastapi test app"
 
 @app.get('/favicon.ico')
@@ -46,6 +47,29 @@ async def hello(request: Request, name: str = Form(...)):
     else:
         print('Request for hello page received with no name or blank name -- redirecting')
         return RedirectResponse(request.url_for("index"), status_code=status.HTTP_302_FOUND)
+
+
+
+def test_import_attach_dependencies():
+    import asgiref
+    import certifi
+    import charset_normalizer
+    import deprecated
+    import fixedint
+    import idna
+    import importlib_metadata
+    import isodate
+    import msrest
+    import oauthlib
+    import packaging
+    import pkg_resources
+    import psutil
+    import requests
+    import six
+    import typing_extensions
+    import urllib3
+    import wrapt
+    import zipp
 
 if __name__ == '__main__':
     logger.info("__main__")
