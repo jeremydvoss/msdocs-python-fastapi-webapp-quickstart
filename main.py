@@ -1,54 +1,48 @@
-# from azure.monitor.opentelemetry import configure_azure_monitor
-# configure_azure_monitor()
+# -------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See License in the project root for
+# license information.
+# --------------------------------------------------------------------------
 
-from fastapi import FastAPI, Form, Request, status
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-import uvicorn
+from os import environ
+from opentelemetry import trace
 import logging
-from os import getenv
+import requests
 
+import fastapi
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+import uvicorn
+
+app = fastapi.FastAPI()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-# app.mount('/static', StaticFiles(directory=os.path.join(current_dir, 'static')), name='static')
-templates = Jinja2Templates(directory="templates")
+@app.get("/")
+async def server_request():
+    logger.info("request page")
+    return {"message": "FastAPI App"}
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    logger.info("index")
-    logger.info("JEREVOSS: app.middleware: %s" % app.middleware)
-    logger.info("JEREVOSS: app.middleware(opentelemetry): %s" % app.middleware("opentelemetry"))
-    print('Request for index page received')
-    test_import_attach_dependencies()
-    return "fastapi test app"
+@app.get("/dependencies")
+async def dependencies_request():
+    requests.get('https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable?tabs=python')
+    return {"message": "dependencies"}
 
-@app.get('/favicon.ico')
-async def favicon():
-    logger.info("favicon")
-    file_name = 'favicon.ico'
-    file_path = './static/' + file_name
-    return FileResponse(path=file_path, headers={'mimetype': 'image/vnd.microsoft.icon'})
-
-@app.post('/hello', response_class=HTMLResponse)
-async def hello(request: Request, name: str = Form(...)):
-    logger.info("hello")
-    if name:
-        print('Request for hello page received with name=%s' % name)
-        return templates.TemplateResponse('hello.html', {
-            "request": request,
-            'name':name,
-            'pythonpath': getenv("PYTHONPATH"),
-            'app_path': getenv("APP_PATH")
-        })
-    else:
-        print('Request for hello page received with no name or blank name -- redirecting')
-        return RedirectResponse(request.url_for("index"), status_code=status.HTTP_302_FOUND)
-
-
+@app.get("/exceptions")
+async def exception_request():
+    logger.info("request page")
+    try:
+        raise Exception('Test Error')
+    except Exception as e:
+        logger.error(e)
+    try:
+        raise Exception('Test Exception')
+    except Exception as e:
+        logger.exception(e)
+    # Use these manual events until events exporter is added.
+    produce_trace_and_exception_events()
+    requests.get('https://httpstat.us/400')
+    return JSONResponse(status_code=500, content=jsonable_encoder({"code": 500, "msg": "Internal Server Error"}))
 
 def test_import_attach_dependencies():
     import asgiref
@@ -62,7 +56,6 @@ def test_import_attach_dependencies():
     import msrest
     import oauthlib
     import packaging
-    import pkg_resources
     import psutil
     import requests
     import six
@@ -71,9 +64,22 @@ def test_import_attach_dependencies():
     import wrapt
     import zipp
 
-if __name__ == '__main__':
-    logger.info("__main__")
-    logger.warning("__main__")
-    logger.error("__main__")
-    print("__main__")
-    uvicorn.run('main:app', host='0.0.0.0', port=3100)
+def produce_trace_and_exception_events():
+    tracer = trace.get_tracer(__name__)
+
+    # Trace message events
+    with tracer.start_as_current_span("hello") as span:
+        span.add_event("Custom event", {"test": "attributes"})
+    
+    # Exception events
+    try:
+        with tracer.start_as_current_span("hello") as span:
+            raise Exception("Custom exception message.")
+    except Exception:
+        print("Exception raised")
+
+if __name__ == "__main__":
+    test_import_attach_dependencies()
+    port = environ["PYTHON_TEST_APP_PORT"]
+    print("Server running at port: %s" % port)
+    uvicorn.run("test_app:app", port=port, reload=True)
